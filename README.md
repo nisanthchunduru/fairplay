@@ -18,7 +18,10 @@ bundle install
 Add a rate limit policy to a Sidekiq worker. Here's an example rate limit policy
 
 ```ruby
+# In app/workers/process_message.rb
 class ProcessMessage
+  include Sidekiq::Worker
+
   class RateLimitOnSenderId < Fairplay::RateLimitPolicy
     limit 15
     period 1.minute
