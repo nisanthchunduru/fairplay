@@ -9,7 +9,10 @@ Gem::Specification.new do |s|
 
   s.add_dependency("sidekiq")
   s.add_dependency("ratelimit")
+  s.add_dependency("activesupport")
 
   s.add_development_dependency("rspec", "~> 3.0")
+  s.add_development_dependency("flexmock")
+  s.add_development_dependency("timecop")
   s.add_development_dependency("pry")
 end
