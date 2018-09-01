@@ -15,7 +15,7 @@ Run
 bundle install
 ```
 
-Add a rate limit policy to a Sidekiq worker. Here's an example rate limit policy
+Add a rate limit policy to a Sidekiq worker you wish to rate limit. Here's an example below
 
 ```ruby
 # In app/workers/process_message.rb
