@@ -1,5 +1,5 @@
 # fairplay
-Fairplay is a rate limited enqueuer for Sidekiq
+Fairplay is an easy to use rate limited enqueuer for Sidekiq
 
 ## Installation
 
