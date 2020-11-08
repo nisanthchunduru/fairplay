@@ -45,6 +45,11 @@ Enqueue the job with Fairplay
 Fairplay.enqueue(ProcessMessage, message_id)
 ```
 
-In a normal scenario, Fairplay will enqueue jobs in Sidekiq immediately. However, when the rate limit is exceeded, Fairplay will enqueue every subsequent job with a delay of 30 seconds (using Sidekiq's [Scheduled Jobs](https://github.com/mperham/sidekiq/wiki/Scheduled-Jobs) feature).
+In a typical scenario, Fairplay will enqueue jobs in Sidekiq immediately. However, when a job hits a rate limit, Fairplay will enqueue every subsequent job with the specificed delay (utilizing Sidekiq's [Scheduled Jobs](https://github.com/mperham/sidekiq/wiki/Scheduled-Jobs) feature).
 
-When all rate limited jobs have been processed and a new rate limit period begins, Fairplay will start enqueuing jobs immediately again.
+When
+
+- A new rate limit period begins
+- ***And*** all rate limits jobs have been processed
+
+Fairplay will a start to enqueue new jobs immediately. This behaviour preserves the order of of jobs.
