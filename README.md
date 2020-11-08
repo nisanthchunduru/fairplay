@@ -1,5 +1,5 @@
 # fairplay
-Fairplay is an easy to use rate limited enqueuer for Sidekiq
+Fairplay is a rate limiter for [Sidekiq](https://github.com/mperham/sidekiq)
 
 ## Installation
 
@@ -9,13 +9,15 @@ Add the fairplay gem to your app's Gemfile
 gem 'fairplay'
 ```
 
-Run
+and install it
 
 ```
 bundle install
 ```
 
-Add a rate limit policy to a Sidekiq worker you wish to rate limit. Here's an example below
+## Usage
+
+Add a rate limit policy to the Sidekiq worker you'd like to rate limit. Here's an example below
 
 ```ruby
 # In app/workers/process_message.rb
@@ -39,17 +41,17 @@ class ProcessMessage
 end
 ```
 
-Enqueue the job with Fairplay
+Start enqueuing the job with `Fairplay.enqueue`
 
 ```ruby
 Fairplay.enqueue(ProcessMessage, message_id)
 ```
 
-In a typical scenario, Fairplay will enqueue jobs in Sidekiq immediately. However, when a job hits a rate limit, Fairplay will enqueue every subsequent job with the specificed delay (utilizing Sidekiq's [Scheduled Jobs](https://github.com/mperham/sidekiq/wiki/Scheduled-Jobs) feature).
+In a normal scenario, `Fairplay.enqueue` enqueues a job in Sidekiq immediately. However, when a job hits a rate limit, `Fairplay.enqueue` will place a time delay (known as penalty) between every subsequent job (utilizing Sidekiq's [Scheduled Jobs](https://github.com/mperham/sidekiq/wiki/Scheduled-Jobs) feature).
 
 When
 
 - A new rate limit period begins
-- ***And*** all rate limits jobs have been processed
+- ***And*** all rate limited jobs have been processed
 
-Fairplay will a start to enqueue new jobs immediately. This behaviour preserves the order of of jobs.
+`Fairplay.enqueue` will resume its normal behaviour and start to enqueue new jobs immediately. This behaviour preserves the order of of jobs.
