@@ -17,7 +17,7 @@ bundle install
 
 ## Usage
 
-Add a rate limit policy to the Sidekiq worker you'd like to rate limit. Here's an example below
+Add a rate limit policy to the Sidekiq worker you'd like to rate limit like in the example below
 
 ```ruby
 # In app/workers/process_message.rb
@@ -30,8 +30,7 @@ class ProcessMessage
     penalty 30.seconds
   end
 
-  def sender_email(job_args)
-    message_id = job_args.first
+  def sender_email(message_id)
     Message.find(message_id).sender_email
   end
 
@@ -41,17 +40,19 @@ class ProcessMessage
 end
 ```
 
-Start enqueuing the job with `Fairplay.enqueue`
+Now, start enqueuing jobs with `Fairplay.enqueue`
 
 ```ruby
 Fairplay.enqueue(ProcessMessage, message_id)
 ```
 
-In a normal scenario, `Fairplay.enqueue` enqueues a job in Sidekiq immediately. However, when a job hits a rate limit, `Fairplay.enqueue` will place a time delay (known as penalty) between every subsequent job (utilizing Sidekiq's [Scheduled Jobs](https://github.com/mperham/sidekiq/wiki/Scheduled-Jobs) feature).
+## Rate limiting behaviour
 
-When
+In a normal scenario, `Fairplay.enqueue` enqueues a job for immediate execution. However, when a job hits a rate limit, `Fairplay.enqueue` will place a time delay (known as penalty) between every subsequent job (utilizing Sidekiq's [Scheduled Jobs](https://github.com/mperham/sidekiq/wiki/Scheduled-Jobs) feature).
 
-- A new rate limit period begins
-- ***And*** all rate limited jobs have been processed
+`Fairplay.queue` stops rate limiting once
 
-`Fairplay.enqueue` will resume its normal behaviour and start to enqueue new jobs immediately. This behaviour preserves the order of of jobs.
+1. A new rate limit period begins
+2. ***And*** all pending rate limited jobs have been processed
+
+The behaviour above ensures that jobs are processed in the order in which they arrive.
