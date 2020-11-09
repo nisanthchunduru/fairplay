@@ -56,3 +56,15 @@ In a normal scenario, `Fairplay.enqueue` enqueues a job for immediate execution.
 2. ***And*** all pending rate limited jobs have been processed
 
 The behaviour above ensures that jobs are processed in the order in which they arrive.
+
+## FAQ
+
+1. Has this library seen production use?
+
+Yes. A slightly different version of this gem has been in use in production at supportbee.com for many years. It has enqueued upwards of a billion and half jobs
+
+If you'd like to use this gem in your app, please open a issue to express your interest and I'll publish the newer version.
+
+## Todos
+
+- Bump the version number and publish recent changes to rubygems.org
