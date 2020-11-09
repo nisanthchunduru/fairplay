@@ -59,7 +59,7 @@ The behaviour above ensures that jobs are processed in the order in which they a
 
 ## FAQ
 
-1. Has this library seen production use?
+1. Has this gem seen production use?
 
 Yes. A slightly different version of this gem has been in use in production at supportbee.com for many years. It has enqueued upwards of a billion and half jobs
 
