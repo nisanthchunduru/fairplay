@@ -67,4 +67,5 @@ If you'd like to use this gem in your app, please open a issue to express your i
 
 ## Todos
 
+- Add an example that showcases multiple rate limits in a single Sidekiq worker
 - Bump the version number and publish recent changes to rubygems.org
