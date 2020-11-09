@@ -6,7 +6,7 @@ Fairplay is a rate limiter for [Sidekiq](https://github.com/mperham/sidekiq)
 Add the fairplay gem to your app's Gemfile
 
 ```ruby
-gem 'fairplay'
+gem 'fairplay', :git => "git@github.com:nisanth074/fairplay.git"
 ```
 
 and install it
