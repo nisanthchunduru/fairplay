@@ -38,7 +38,7 @@ module Fairplay
       options = {
         bucket_span: bucket_span,
         bucket_interval: bucket_interval,
-        redis: redis_server
+        redis: Fairplay.redis
       }
 
       @ratelimit = Ratelimit.new(@redis_namespace, options)
@@ -50,10 +50,6 @@ module Fairplay
 
     def limit
       @options[:limit]
-    end
-
-    def redis_server
-      Redis.new
     end
   end
 end

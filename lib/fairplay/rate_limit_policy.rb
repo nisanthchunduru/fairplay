@@ -20,34 +20,43 @@ module Fairplay
       end
     end
 
+    attr_reader :enqueue_args
+
     def initialize(enqueue_args)
       @enqueue_args = enqueue_args
     end
 
+    def key
+      key_method = underscore_name.sub("rate_limit_on_", "")
+      worker_class.new.send(key_method, *job_args)
+    end
+
     def increment_rate_limit_count
-      entity = public_send(name.sub("rate_limit_on_", ""), job_args)
-      rate_limit.increment_count(entity)
+      rate_limit.increment_count(key)
     end
 
     def rate_limit_job?
-      limit_exceeded?
+      rate_limit.limit_exceeded?(key)
     end
 
-    def enqueue_job_at
-      Time.now + self.class.penalty
+    def penalty
+      self.class.penalty
     end
 
     private
 
-    def limit_exceeded?
-      entity = public_send(name.sub("rate_limit_on_", ""), job_args)
-      rate_limit.limit_exceeded?(entity)
+    def underscore_name
+      name.underscore
+    end
+
+    def name
+      self.class.name.demodulize
     end
 
     def rate_limit
       return @rate_limit if @rate_limit
 
-      redis_namespace = "fairplay/#{lowercase_worker_class_name}/#{name}/last_rate_limited_job_enqueue_time"
+      redis_namespace = "fairplay:sidekiq_workers:#{worker_class_name}:rate_limit_policies:#{name}"
       options = {
         limit: self.class.limit + 1,
         period: self.class.period
@@ -55,20 +64,16 @@ module Fairplay
       @rate_limit = Fairplay::RateLimit.new(redis_namespace, options)
     end
 
-    def lowercase_worker_class_name
-      worker_class.to_s.demodulize.underscore
-    end
-
-    def name
-      self.class.to_s.demodulize.underscore
+    def worker_class_name
+      worker_class.to_s.demodulize
     end
 
     def worker_class
-      @enqueue_args.first
+      enqueue_args.first
     end
 
     def job_args
-      @enqueue_args[1..-1]
+      enqueue_args[1..-1]
     end
   end
 end

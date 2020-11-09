@@ -24,17 +24,17 @@ Add a rate limit policy to the Sidekiq worker you'd like to rate limit. Here's a
 class ProcessMessage
   include Sidekiq::Worker
 
-  class RateLimitOnSenderId < Fairplay::RateLimitPolicy
+  class RateLimitOnSenderEmail < Fairplay::RateLimitPolicy
     limit 15
     period 1.minute
     penalty 30.seconds
-    
-    def sender_id(job_args)
-      message_id = job_args.first
-      Message.find(message_id).sender_id
-    end
   end
-    
+
+  def sender_email(job_args)
+    message_id = job_args.first
+    Message.find(message_id).sender_email
+  end
+
   def perform(message_id)
     # ...
   end

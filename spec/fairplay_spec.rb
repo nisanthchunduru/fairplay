@@ -8,7 +8,7 @@ end
 
 describe Fairplay do
   describe ".enqueue" do
-    context "sidekiq worker doesn't have any rate limit policies" do
+    context "the sidekiq worker doesn't have any rate limit policies" do
       class StoreMessageInSearchIndex
         include Sidekiq::Worker
 
@@ -24,37 +24,61 @@ describe Fairplay do
       end
     end
 
-    context "sidekiq worker has a rate limit policy" do
+    context "the sidekiq worker has a rate limit policy" do
       let(:account_id) { 1 }
 
       class ExportData
         include Sidekiq::Worker
 
-          class RateLimitOnAccountId < Fairplay::RateLimitPolicy
-            limit 2
-            period 15.minutes
-            penalty 30.minutes
-            
-            def account_id(job_args)
-              job_args.first
-            end
-          end
+        class RateLimitOnAccountId < Fairplay::RateLimitPolicy
+          limit 6
+          period 10.minutes
+          penalty 3.minutes
+        end
+
+        def account_id(account_id)
+          account_id
+        end
 
         def perform(account_id)
         end
       end
 
       context "a new job exceeds the rate limit" do
-        it "rate limits the job" do
-          time_now = Time.new(2018, 1, 1)
+        let(:time_now) { Time.new(2100, 1, 1) }
+        let(:limit) { ExportData::RateLimitOnAccountId.limit }
+        let(:penalty) { ExportData::RateLimitOnAccountId.penalty }
+
+        it "enqueues the job with a delay of 30 minutes (the penalty time)" do
           Timecop.freeze(time_now)
 
-          flexmock(Sidekiq::Client).should_receive(:enqueue).with(ExportData, account_id).twice
+          flexmock(Sidekiq::Client).should_receive(:enqueue).with(ExportData, account_id).times(limit)
+          limit.times do
+            Fairplay.enqueue(ExportData, account_id)
+            Timecop.freeze(Time.now + 15.seconds)
+          end
+          flexmock(Sidekiq::Client).should_receive(:enqueue_at).with(Time.now + penalty, ExportData, account_id).once
           Fairplay.enqueue(ExportData, account_id)
-          Fairplay.enqueue(ExportData, account_id)
-          penalty = 30.minutes
-          flexmock(Sidekiq::Client).should_receive(:enqueue_in).with(penalty, ExportData, account_id).once
-          Fairplay.enqueue(ExportData, account_id)
+        end
+
+        context "another new job arrives in the same rate limit period" do
+          it "enqueues the job with a delay of 30 minutes (the penalty) time since the rate limited job was enqueued" do
+            Timecop.freeze(time_now)
+
+            flexmock(Sidekiq::Client).should_receive(:enqueue).with(ExportData, account_id).times(limit)
+            limit.times do
+              Fairplay.enqueue(ExportData, account_id)
+              Timecop.freeze(Time.now + 10.seconds)
+            end
+            enqueue_time = Time.now + penalty
+            flexmock(Sidekiq::Client).should_receive(:enqueue_at).with(enqueue_time, ExportData, account_id).once
+            Fairplay.enqueue(ExportData, account_id)
+            last_rate_limited_job_enqueue_time = enqueue_time
+            Timecop.freeze(Time.now + 1.minute)
+            enqueue_time = last_rate_limited_job_enqueue_time + penalty
+            flexmock(Sidekiq::Client).should_receive(:enqueue_at).with(enqueue_time, ExportData, account_id).once
+            Fairplay.enqueue(ExportData, account_id)
+          end
         end
       end
     end
