@@ -61,7 +61,7 @@ The behaviour above ensures that jobs are processed in the order in which they a
 
 1. Has this gem seen production use?
 
-Yes. A slightly different version of this gem has been in use in production at supportbee.com for many years. It has enqueued upwards of a billion and half jobs.
+Yes! fairplay has been in use in production at supportbee.com for many years. It has enqueued upwards of a billion and half jobs.
 
 If you'd like to use this gem in your app, please open an issue to express your interest and I'll publish the newer version.
 
